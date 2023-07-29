@@ -12,13 +12,10 @@ create_user_table_query = """
         reference_link TEXT NULL,
         UNIQUE (telegram_id))
 """
-
-
 # Добавление пользователя в таблицу Telegram Users
 insert_user_table_query = """
     INSERT OR IGNORE INTO telegram_users (telegram_id, username, first_name, last_name) VALUES (?,?,?,?)
 """
-
 # Вывод все пользователей из таблицы Telegram Users
 select_user_table_query = """
     SELECT * FROM telegram_users
@@ -76,7 +73,7 @@ select_potential_user_ban = """
 """
 
 
-'''User survey'''
+'''User survey'''  # hw3
 # Создание таблицы для User survey
 create_user_survey = """
     CREATE TABLE IF NOT EXISTS user_survey (
@@ -132,7 +129,7 @@ select_complaint_check = """
 """
 
 
-'''Wallet'''
+'''Wallet'''     # hw5
 create_wallet = """
     CREATE TABLE IF NOT EXISTS wallet (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -153,7 +150,7 @@ update_wallet = """
 """
 
 
-'''Referral'''
+'''Referral'''     # hw5
 create_referral = """
     CREATE TABLE IF NOT EXISTS referral (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -178,7 +175,7 @@ select_all_referrals = """
 """
 
 
-'''Reference link'''
+'''Reference link'''     # hw5
 update_user_reference_link_query = """
     UPDATE telegram_users SET reference_link = ? WHERE telegram_id = ?
 """
@@ -187,4 +184,22 @@ select_user_by_id_return_link_query = """
 """
 select_user_by_link = """
     SELECT telegram_id FROM telegram_users WHERE reference_link LIKE ?
+"""
+
+
+"""Scraper note"""     # hw6
+create_scraper_note = """
+    CREATE TABLE IF NOT EXISTS scraper_note(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_user INTEGER,
+        link_anime TEXT,
+        FOREIGN KEY (id_user) REFERENCES telegram_users (id),
+        UNIQUE (id_user, link_anime)
+    )
+"""
+insert_scraper_note = """
+    INSERT OR IGNORE INTO scraper_note(id_user, link_anime) VALUES (?, ?)
+"""
+select_scraper_note = """
+    SELECT id_user, link_anime FROM scraper_note WHERE id_user = ?
 """

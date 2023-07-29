@@ -7,16 +7,19 @@ class Database:
         self.connection = sqlite3.connect("db.sqlite3")
         self.cursor = self.connection.cursor()
 
+
+    # Все создание таблиц
     def sql_create_user_table_query(self):
         if self.connection:
             print("Database connected successfully")
         self.connection.execute(sql_queries.create_user_table_query)    # Создание таблицы Telegram Users
-        self.connection.execute(sql_queries.create_quiz)                # Создание таблицы Quiz             # hw1   # 3.0.
+        self.connection.execute(sql_queries.create_quiz)                # Создание таблицы Quiz             # hw1
         self.connection.execute(sql_queries.create_user_ban)            # Создание таблицы User Ban         # hw2
-        self.connection.execute(sql_queries.create_user_survey)         # Создание таблицы User Survey      # hw3   # 1.0.
+        self.connection.execute(sql_queries.create_user_survey)         # Создание таблицы User Survey      # hw3
         self.connection.execute(sql_queries.create_complaint)           # Создание таблицы Complaint        # hw4
-        self.connection.execute(sql_queries.create_wallet)              # Создание таблицы Wallet        # hw5
-        self.connection.execute(sql_queries.create_referral)            # Создание таблицы Referral        # hw5
+        self.connection.execute(sql_queries.create_wallet)              # Создание таблицы Wallet           # hw5
+        self.connection.execute(sql_queries.create_referral)            # Создание таблицы Referral         # hw5
+        self.connection.execute(sql_queries.create_scraper_note)        # Создание таблицы Scraper note     # hw6
 
     """Telegram Users"""
     # Добавление пользователя в таблицу Telegram Users
@@ -140,7 +143,7 @@ class Database:
         return self.cursor.execute(sql_queries.select_all_referrals, (owner_link_telegram_id,)).fetchall()
 
 
-    '''Reference link'''
+    '''Reference link'''     # hw5
     def sql_update_user_reference_link(self, link, telegram_id):
         self.cursor.execute(sql_queries.update_user_reference_link_query, (link, telegram_id,))
         self.connection.commit()
@@ -152,3 +155,14 @@ class Database:
     def sql_select_user_by_link(self, link):
         self.cursor.row_factory = lambda cursor, row: {"link": row[0]}
         return self.cursor.execute(sql_queries.select_user_by_link, (link,)).fetchall()
+
+
+    """Scraper anime"""     # hw6
+    def sql_insert_scraper_note(self, user_id, link_anime):
+        self.cursor.execute(sql_queries.insert_scraper_note, (user_id,
+                                                              link_anime))
+        self.connection.commit()
+    def sql_select_scraper_note(self, id_user):
+        self.cursor.row_factory = lambda cursor, row: {"user": row[0],
+                                                       "link": row[1]}
+        return self.cursor.execute(sql_queries.select_scraper_note, (id_user,)).fetchall()

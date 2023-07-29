@@ -1,7 +1,9 @@
+# HW 6
 # Aiogram
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 # Bot
 from config import bot
 # Database
@@ -10,70 +12,79 @@ from database.sql_commands import Database
 from parsel import Selector
 import requests
 
-def requests_news():
-    xpath_news = '///a[@class="name"]/@href'
+
+# 1.0. Создать свой собственный скрапер для любого сайта из которого вы хотите парсить данные для пользователя
+def requests_anime():
+    xpath_anime_link = '//a[@class="cover anime-tooltip"]/@href'
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
         'Accept': 'application/font-woff2;q=1.0,application/font-woff;q=0.9,*/*;q=0.8',
     }
-    link = f"https://shikimori.me/forum/news"
-    requests_news = requests.get(link, headers=headers).text
-    news = Selector(text=requests_news)
-    anime_news = news.xpath(xpath_news).getall()
-    return anime_news
+    link = "https://shikimori.me/animes/kind/tv/status/ongoing"
+    req_anime = requests.get(link, headers=headers).text
+    tree = Selector(text=req_anime)
+    return tree.xpath(xpath_anime_link).getall()
 
 
+# 2.2. Когда вы высылаете посты или новости поочередна чтобы пользователь мог сохранить свой любимый пост в базу данных
 class AnimeNews(StatesGroup):
-    news_1 = State()
-    news_2 = State()
-    news_3 = State()
-    news_4 = State()
-    news_5 = State()
+    anime = State()
 
-async def anime_news_1(message: types.Message, state: FSMContext):
-    await AnimeNews.news_1.set()
+
+async def anime(message: types.Message, state: FSMContext):
+    await AnimeNews.anime.set()
     async with state.proxy() as data:
-        data['news'] = requests_news()
-    text = f'{data["news"][0]}\nОтправьте любое слово чтоб продолжить'
-    await message.reply(text=text)
-    await AnimeNews.next()
+        data['requests_anime'] = requests_anime()
+        data['anime_num'] = 0
+        data['anime'] = data['requests_anime'][data['anime_num']]
+    await show_anime(message=message, anime=data['anime'])
 
 
-async def next_anime_news_2(message: types.Message, state: FSMContext):
+# 2.2. Когда вы высылаете посты или новости поочередна чтобы пользователь мог сохранить свой любимый пост в базу данных
+async def next_anime(call: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
-        data['news'] = requests_news()
-    text = f'{data["news"][1]}\nОтправьте любое слово чтоб продолжить'
-    await message.reply(text=text)
-    await AnimeNews.next()
+        data['anime_num'] = data['anime_num'] + 1
+        data['anime'] = data['requests_anime'][data['anime_num']]
+    if data['anime_num'] >= 5:
+        await state.finish()
+    else:
+        await show_anime(message=call.message, anime=data['anime'])
 
 
-async def next_anime_news_3(message: types.Message, state: FSMContext):
+async def show_anime(message, anime):
+    markup_anime = InlineKeyboardMarkup()
+    next_anime_btn = InlineKeyboardButton(
+        "Следующая новость",
+        callback_data="next_anime"
+    )
+    markup_anime.add(next_anime_btn)
+    anime_note = InlineKeyboardButton(
+        "Добавить в заметки",
+        callback_data="save_anime_note"
+    )
+    markup_anime.add(anime_note)
+
+    await bot.send_message(chat_id=message.chat.id, text=anime, reply_markup=markup_anime)
+
+
+# 2.2. Когда вы высылаете посты или новости поочередна чтобы пользователь мог сохранить свой любимый пост в базу данных
+async def save_anime_note(call: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
-        data['news'] = requests_news()
-    text = f'{data["news"][2]}\nОтправьте любое слово чтоб продолжить'
-    await message.reply(text=text)
-    await AnimeNews.next()
+        Database().sql_insert_scraper_note(call.from_user.id, data['anime'])
+    await bot.send_message(chat_id=call.message.chat.id, text='Добавлено в заметки')
 
 
-async def next_anime_news_4(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['news'] = requests_news()
-    text = f'{data["news"][3]}\nОтправьте любое слово чтоб продолжить'
-    await message.reply(text=text)
-    await AnimeNews.next()
-
-
-async def next_anime_news_5(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['news'] = requests_news()
-    text = f'{data["news"][4]}\nОтправьте любое слово чтоб продолжить'
-    await message.reply(text=text)
-    await AnimeNews.next()
+# 2.3. Выводить список новостей которые он сохранил в базе.
+async def anime_note(message: types.Message):
+    all_anime = Database().sql_select_scraper_note(message.from_user.id)
+    for anime in all_anime:
+        await bot.send_message(chat_id=message.chat.id, text=anime['link'])
 
 
 def register_scrapers(dp: Dispatcher):
-    dp.register_message_handler(anime_news_1, commands=['anime_news'])
-    dp.register_message_handler(next_anime_news_2, state=AnimeNews.news_2, content_types=['text'])
-    dp.register_message_handler(next_anime_news_3, state=AnimeNews.news_3, content_types=['text'])
-    dp.register_message_handler(next_anime_news_4, state=AnimeNews.news_4, content_types=['text'])
-    dp.register_message_handler(next_anime_news_5, state=AnimeNews.news_5, content_types=['text'])
+    # 1.1. Отправлять с помощью команды.
+    dp.register_message_handler(anime, commands=['anime'])
+    # 2.2. Когда вы высылаете посты или новости поочередна чтобы пользователь мог сохранить свой любимый пост в базу данных
+    dp.register_callback_query_handler(next_anime, lambda call: call.data == "next_anime", state=AnimeNews)
+    dp.register_callback_query_handler(save_anime_note, lambda call: call.data == "save_anime_note", state=AnimeNews)
+    dp.register_message_handler(anime_note, commands=['anime_note'])

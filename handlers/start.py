@@ -2,7 +2,7 @@
 from const import HELP_TEXT
 # Aiogram
 from aiogram import types, Dispatcher
-from aiogram.types import ParseMode, InlineKeyboardButton, InlineKeyboardMarkup    # hw1   # 2.0.
+from aiogram.types import ParseMode, InlineKeyboardButton, InlineKeyboardMarkup    # hw1
 from aiogram.utils.deep_linking import _create_link    # hw5
 # Database
 from database.sql_commands import Database
@@ -11,7 +11,7 @@ from config import bot
 # Keyboards
 from keyboards import start_keyboard
 # Moduls
-from random import randint    # hw1   # 3.1.
+from random import randint    # hw1
 from datetime import datetime, timedelta
 from binascii import hexlify    # hw5
 from os import urandom    # hw5
@@ -97,13 +97,13 @@ async def handle_poll_answer(poll_answer: types.PollAnswer):
                                quiz_option=poll_answer.option_ids[0])
 
 
-# Random  # hw1  # 3.1.
+# Random   # hw1
 async def random(message: types.Message):
     rand_num = randint(1, 100)
     await message.reply(text=rand_num)
 
 
-# Жалоба
+# Жалоба   # hw4
 async def complaint(message: types.Message):
     complaint_text = message.text.split()
 

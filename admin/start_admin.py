@@ -25,7 +25,7 @@ async def secret_word(message: types.Message):
 
 
 
-# Список пользователей   # hw2   # 4.1
+# Список пользователей   # hw2
 async def list_of_users(call: types.CallbackQuery):
     users = Database().sql_select_user_table_query()
     if users:
@@ -39,7 +39,7 @@ async def list_of_users(call: types.CallbackQuery):
         await bot.send_message(call.message.chat.id, "Список пуст")
 
 
-# Список потенциальных на бан
+# Список потенциальных на бан   # hw2
 async def list_potential_user_ban(call: types.CallbackQuery):
     users = Database().sql_select_potential_user_ban()
     if users:
@@ -54,7 +54,7 @@ async def list_potential_user_ban(call: types.CallbackQuery):
         await bot.send_message(call.message.chat.id, "Список пуст")
 
 
-# Список опросов
+# Список опросов    # HW3
 class SurveyStates(StatesGroup):
     survey = State()
 async def list_user_survey(call: types.CallbackQuery):
@@ -70,7 +70,7 @@ async def list_user_survey(call: types.CallbackQuery):
     await SurveyStates.survey.set()
 
 
-# Выбор опроса по ID
+# Выбор опроса по ID    # HW3
 async def load_survey(message: types.Message, state: FSMContext):
     id_survey = int(message.text)
     survey = Database().sql_select_user_survey_by_id(id_survey)[0]
@@ -91,8 +91,8 @@ async def load_survey(message: types.Message, state: FSMContext):
 
 # Диспетчер
 def register_handlers_admin(dp: Dispatcher):
-    dp.register_message_handler(secret_word, lambda word: "Ringo" in word.text)                                         # hw2   #4.0.
+    dp.register_message_handler(secret_word, lambda word: "Ringo" in word.text)                                         # hw2
     dp.register_callback_query_handler(list_of_users, lambda call: call.data == "list_of_users")                        # hw2
     dp.register_callback_query_handler(list_potential_user_ban, lambda call: call.data == "list_potential_user_ban")    # hw2
     dp.register_callback_query_handler(list_user_survey, lambda call: call.data == "list_user_survey")                  # hw3
-    dp.register_message_handler(load_survey, state=SurveyStates.survey, content_types=['text'])
+    dp.register_message_handler(load_survey, state=SurveyStates.survey, content_types=['text'])                         # hw3

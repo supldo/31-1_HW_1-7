@@ -8,27 +8,27 @@ from config import bot
 from database.sql_commands import Database
 
 
-class FormStates(StatesGroup):
+class FormStates(StatesGroup):  # HW3
     idea = State()
     problems = State()
     assessment = State()
 
-async def fsm_start(message: types.Message):
+async def fsm_start(message: types.Message):  # HW3
     await message.reply("Идея")
     await FormStates.idea.set()
 
-async def load_idea(message: types.Message, state: FSMContext):
+async def load_idea(message: types.Message, state: FSMContext):  # HW3
     async with state.proxy() as data:
         data['idea'] = message.text
     await FormStates.next()
     await message.reply("Проблемы")
 
-async def load_problems(message: types.Message, state: FSMContext):
+async def load_problems(message: types.Message, state: FSMContext):  # HW3
     async with state.proxy() as data:
         data['problems'] = message.text
     await FormStates.next()
     await message.reply("Оценка бота")
-async def load_assessment(message: types.Message, state: FSMContext):
+async def load_assessment(message: types.Message, state: FSMContext):  # HW3
     async with state.proxy() as data:
         Database().sql_insert_user_survey(
             idea=data['idea'],
@@ -40,7 +40,7 @@ async def load_assessment(message: types.Message, state: FSMContext):
     await message.reply("Успех!")
 
 
-def register_handler_fsm_form(dp: Dispatcher):
+def register_handler_fsm_form(dp: Dispatcher):  # HW3
     dp.register_message_handler(fsm_start, commands=['survey'])
     dp.register_message_handler(load_idea, state=FormStates.idea, content_types=['text'])
     dp.register_message_handler(load_problems, state=FormStates.problems, content_types=['text'])
