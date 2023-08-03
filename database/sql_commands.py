@@ -21,6 +21,7 @@ class Database:
         self.connection.execute(sql_queries.create_referral)            # Создание таблицы Referral         # hw5
         self.connection.execute(sql_queries.create_scraper_note)        # Создание таблицы Scraper note     # hw6
 
+
     """Telegram Users"""
     # Добавление пользователя в таблицу Telegram Users
     def sql_insert_user_table_query(self, telegram_id, username, first_name, last_name):
